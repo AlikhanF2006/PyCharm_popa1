@@ -1,6 +1,9 @@
+import sys
+
 import pygame
 import math
 import random
+import subprocess
 
 # Инициализация Pygame
 pygame.init()
@@ -88,6 +91,10 @@ def draw_text(text, font, color, surface, x, y):
     textrect.topleft = (x, y)
     surface.blit(textobj, textrect)
 
+def return_to_menu():
+    pygame.mixer.music.stop()
+    pygame.quit()
+    subprocess.run([sys.executable, "main_menu.py"])
 
 def reset_game():
     global tank_x, tank_y, tank_angle, player_lives, player_score, player_alive, bullets, enemy_bullets, enemies, last_shot_time, last_enemy_spawn

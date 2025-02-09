@@ -1,15 +1,32 @@
 import tkinter as tk
 from random import randint
 from PIL import Image, ImageTk
+import subprocess
+import sys
+import pygame
 
-# Global variables
+# Инициализация Pygame для музыки
+pygame.mixer.init()
+
+# Запуск фоновой музыки (только если не играет)
+def play_game_music():
+    if not pygame.mixer.music.get_busy():
+        pygame.mixer.music.load("AUDIO-2025-02-09-19-19-04.mp3")  # Музыка для этой игры
+        pygame.mixer.music.set_volume(0.5)
+        pygame.mixer.music.play(-1)
+
+# Остановка музыки перед выходом в меню
+def stop_music():
+    pygame.mixer.music.stop()
+
+# Глобальные переменные
 youpoint = 0
 pcpoint = 0
 round_D = 1
 round_Max = 3
 wincombination = [(1, 2), (2, 3), (3, 1)]
 
-# Function to load images
+# Функция загрузки изображений
 def load_images():
     return {
         "win": ImageTk.PhotoImage(Image.open("windows-12_large.png").resize((600, 400))),  # Победа
@@ -18,7 +35,7 @@ def load_images():
         "background": ImageTk.PhotoImage(Image.open("og_og_1570535460269043702.jpg").resize((600, 600)))  # Фон игры
     }
 
-# Function to handle the move
+# Функция обработки хода
 def play(choice):
     global youpoint, pcpoint, round_D
     if round_D > round_Max:
@@ -42,13 +59,12 @@ def play(choice):
     if round_D > round_Max:
         show_final_result()
 
-# Function to update the score
+# Функция обновления счёта
 def update_score():
     score_label.config(text=f"Score: {youpoint}:{pcpoint}")
 
-# Function to show the final result with an image and custom text
+# Функция отображения результата игры
 def show_final_result():
-    # Удаляем все элементы интерфейса
     for widget in root.winfo_children():
         widget.destroy()
 
@@ -84,39 +100,39 @@ def show_final_result():
     )
     btn_restart.pack(pady=10)
 
-# Function to restart the game
+# Функция перезапуска игры
 def restart_game():
     global youpoint, pcpoint, round_D
     youpoint = 0
     pcpoint = 0
     round_D = 1
 
-    # Перезапуск интерфейса
     for widget in root.winfo_children():
         widget.destroy()
     setup_game_ui()
 
-# Function to return to the main menu
+# Функция возврата в главное меню
 def return_to_menu():
+    stop_music()  # Останавливаем музыку перед выходом
     root.destroy()
+    subprocess.run([sys.executable, "main_menu.py"])  # Возвращаемся в главное меню
 
-# Function to set up the game UI
+# Функция настройки интерфейса игры
 def setup_game_ui():
     global score_label
 
-    # Установка фона
     background_label = tk.Label(root, image=result_images["background"])
-    background_label.place(relwidth=1, relheight=1)  # Заполняет всё окно
+    background_label.place(relwidth=1, relheight=1)
 
-    # Header
+    # Заголовок
     header_label = tk.Label(root, text="Rock, Scissors, Paper", font=("Arial", 22, "bold"), bg="#ffffff")
     header_label.pack(pady=20)
 
-    # Score label
+    # Счёт
     score_label = tk.Label(root, text=f"Score: {youpoint}:{pcpoint}", font=("Arial", 16, "bold"), bg="#ffffff")
     score_label.pack(pady=10)
 
-    # Buttons
+    # Кнопки выбора
     button_style = {
         "font": ("Arial", 12, "bold"),
         "width": 15,
@@ -135,16 +151,19 @@ def setup_game_ui():
     btn_scissors = tk.Button(root, text="SCISSORS", bg="#e74c3c", activebackground="#c0392b", command=lambda: play(2), **button_style)
     btn_scissors.pack(pady=10)
 
-# Create the window
+# Создание окна
 root = tk.Tk()
 root.title("Rock, Scissors, Paper")
 root.geometry("600x600")
 
-# Загрузка изображений после создания root
+# Включаем музыку игры
+play_game_music()
+
+# Загружаем изображения
 result_images = load_images()
 
-# Настройка начального интерфейса игры
+# Настраиваем интерфейс
 setup_game_ui()
 
-# Start the window
+# Запуск окна
 root.mainloop()

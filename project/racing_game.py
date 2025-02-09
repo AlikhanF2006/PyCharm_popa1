@@ -6,11 +6,16 @@ import random
 # Инициализация Pygame
 pygame.init()
 
-# Загрузка музыки
-pygame.mixer.init()
-pygame.mixer.music.load("AUDIO-2025-02-09-19-19-04.mp3")  # Название вашего файла
-pygame.mixer.music.set_volume(0.5)  # Настройте громкость
-pygame.mixer.music.play(-1)  # Бесконечное воспроизведение
+# Музыкальное сопровождение
+def play_music():
+    pygame.mixer.init()
+    pygame.mixer.music.load("AUDIO-2025-02-09-19-19-04.mp3")  # Укажите свой файл музыки для гонки
+    pygame.mixer.music.set_volume(0.5)
+    pygame.mixer.music.play(-1)
+
+# Остановка музыки
+def stop_music():
+    pygame.mixer.music.stop()
 
 # Константы
 SCREEN_WIDTH, SCREEN_HEIGHT = 800, 600
@@ -35,7 +40,7 @@ class Player(pygame.sprite.Sprite):
     def __init__(self):
         super().__init__()
         self.image = pygame.Surface((50, 100), pygame.SRCALPHA)
-        pygame.draw.polygon(self.image, BLUE, [(25, 0), (50, 100), (0, 100)])  # Треугольная форма
+        pygame.draw.polygon(self.image, BLUE, [(25, 0), (50, 100), (0, 100)])
         self.rect = self.image.get_rect()
         self.rect.center = (SCREEN_WIDTH // 2, SCREEN_HEIGHT - 120)
         self.speed = 5
@@ -74,13 +79,15 @@ def draw_text(text, font, color, surface, x, y):
     textrect.topleft = (x, y)
     surface.blit(textobj, textrect)
 
+# Экран окончания игры
 def game_over_screen(score):
+    stop_music()  # Остановить музыку гонки перед выходом
+
     font = pygame.font.Font(None, 72)
     draw_text("GAME OVER", font, RED, screen, SCREEN_WIDTH // 2 - 150, SCREEN_HEIGHT // 2 - 50)
     draw_text(f"Score: {score}", font, WHITE, screen, SCREEN_WIDTH // 2 - 80, SCREEN_HEIGHT // 2)
     pygame.display.flip()
 
-    # Показать кнопки
     button_font = pygame.font.Font(None, 36)
     restart_button = pygame.Rect(100, SCREEN_HEIGHT // 2 + 50, 200, 50)
     menu_button = pygame.Rect(500, SCREEN_HEIGHT // 2 + 50, 200, 50)
@@ -102,13 +109,16 @@ def game_over_screen(score):
                 if restart_button.collidepoint(event.pos):
                     main()  # Перезапуск игры
                 elif menu_button.collidepoint(event.pos):
-                    pygame.quit()
-                    subprocess.run([sys.executable, "main_menu.py"])  # Возврат в главное меню
+                    stop_music()  # Остановить музыку перед выходом в меню
+                    subprocess.run([sys.executable, "main_menu.py"])
+                    return
 
         clock.tick(FPS)
 
 # Основная функция игры
 def main():
+    play_music()  # Запустить музыку гонки
+
     player = Player()
     obstacles = pygame.sprite.Group()
     all_sprites = pygame.sprite.Group()
@@ -123,6 +133,7 @@ def main():
     score = 0
     font = pygame.font.Font(None, 36)
     running = True
+
     while running:
         screen.fill(ROAD_COLOR)
 
@@ -131,6 +142,7 @@ def main():
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
+                stop_music()
                 pygame.quit()
                 sys.exit()
 
@@ -138,13 +150,11 @@ def main():
         player.update(keys)
         obstacles.update()
 
-        # Проверка на столкновение
         if pygame.sprite.spritecollideany(player, obstacles):
             running = False
-            game_over_screen(score)  # Показать экран "GAME OVER"
+            game_over_screen(score)
 
         score += 1
-
         all_sprites.draw(screen)
         score_text = font.render(f"Score: {score}", True, WHITE)
         screen.blit(score_text, (10, 10))
